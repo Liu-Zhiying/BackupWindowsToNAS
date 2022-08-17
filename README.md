@@ -1,6 +1,6 @@
 # BackupWindowsToNAS
 
-[简体中文](README_ZH_CN.md)  [Englist](README_EN_US.md)
+[Englist](README_EN_US.md)
 
 针对NAS用户的Windows分区备份工具，使用SMB协议
 
@@ -14,7 +14,7 @@
 
 ## 系统要求（将支持的系统）
 
-* Windows 7 and Windows Server 2008 R2 或更高 （限64bit Windows）  
+* Windows 7 和 Windows Server 2008 R2 或更高 （限64位 Windows）  
 
 * .NET Framework 4.0 (Windows 8 及更高) 或者 .NET Framework 3.5 (针对 Windows 7)
 
