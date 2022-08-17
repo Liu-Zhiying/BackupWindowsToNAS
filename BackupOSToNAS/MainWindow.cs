@@ -1,13 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BackupOSToNAS
@@ -40,21 +33,28 @@ namespace BackupOSToNAS
 
                 if (callCode)
                 {
-                    Guid deviceGuid = Functions.GenRandomGuid(), OSLoaderGuid = Functions.GenRandomGuid();
-                    BackupToNASConfig config = new BackupToNASConfig
-                    (
-                        //硬盘号是0 base，传递给PERunner的时候改为1 base
-                        $"{partitionLocation.diskNumber + 1}:{partitionLocation.partitionNumber}",
-                        NASNameBox.Text,
-                        NASPathBox.Text,
-                        NASUserBox.Text,
-                        NASPasswordBox.Text,
-                        BackupToNASConfig.BackupOperation,
-                        deviceGuid,
-                        OSLoaderGuid,
-                        Guid.Parse(Functions.GetBootDefaultItem())
-                    );
-                    config.Write("config.json");
+                    Guid defaultBootItemGuid = new Guid();
+                    callCode = Functions.ParseGuid(Functions.GetBootDefaultItem(), out defaultBootItemGuid);
+                    NASUserBox.Text = defaultBootItemGuid.ToString();
+                    if (callCode)
+                    {
+                        Guid deviceGuid = Guid.NewGuid(), OSLoaderGuid = Guid.NewGuid();
+                        BackupToNASConfig config = new BackupToNASConfig
+                        (
+                            //硬盘号是0 base，传递给PERunner的时候改为1 base
+                            $"{partitionLocation.diskNumber + 1}:{partitionLocation.partitionNumber}",
+                            NASNameBox.Text,
+                            NASPathBox.Text,
+                            NASUserBox.Text,
+                            NASPasswordBox.Text,
+                            BackupToNASConfig.BackupOperation,
+                            deviceGuid,
+                            OSLoaderGuid,
+                            defaultBootItemGuid
+                        );
+                        config.Write("config.json");
+                        return;
+                    }
                 }
             }
             //若分区的物理路径，硬盘号，分区号之一获取错误，视为参数错误

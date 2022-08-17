@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
@@ -203,7 +202,7 @@ namespace BackupOSToNAS
                         callCode = Native.GetDriveTypeW(item);
                         if (callCode == (uint)DEVICE_TYPE.DRIVE_FIXED || callCode == (uint)DEVICE_TYPE.DRIVE_REMOVABLE)
                             result.Add(item);
-                        strBulider.Clear();
+                        strBulider.Remove(0, strBulider.Length);
                         isLastCharZero = true;
                     }
                     else
@@ -245,22 +244,38 @@ namespace BackupOSToNAS
             Marshal.FreeHGlobal(pPartitionNumber);
             return callCode;
         }
-        internal static Guid GenRandomGuid()
+        //从字符串解析Guid，注意写这个方法是因为.NET franmework 3.5 没有 Guid.Parse()
+        internal static bool ParseGuid(string guidStr, out Guid result)
         {
-            return new Guid
+            result = Guid.Empty;
+            StringBuilder builder = new StringBuilder(guidStr);
+            builder.Replace("{", "");
+            builder.Replace("}", "");
+            string[] guidPartStrs = builder.ToString().Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries);
+            if (
+                guidPartStrs.Length != 5 &&
+                guidPartStrs[0].Length == 8 &&
+                guidPartStrs[1].Length == 4 &&
+                guidPartStrs[2].Length == 4 &&
+                guidPartStrs[3].Length == 4 &&
+                guidPartStrs[0].Length == 12
+            )
+                return false;
+            result = new Guid
             (
-                random.Next(),
-                (short)random.Next(short.MaxValue),
-                (short)random.Next(short.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue),
-                (byte)random.Next(byte.MaxValue)
+                (int)Convert.ToUInt32(guidPartStrs[0], 16),
+                (short)Convert.ToUInt16(guidPartStrs[1], 16),
+                (short)Convert.ToUInt16(guidPartStrs[2], 16),
+                Convert.ToByte(guidPartStrs[3].Substring(0, 2), 16),
+                Convert.ToByte(guidPartStrs[3].Substring(2, 2), 16),
+                Convert.ToByte(guidPartStrs[4].Substring(0, 2), 16),
+                Convert.ToByte(guidPartStrs[4].Substring(2, 2), 16),
+                Convert.ToByte(guidPartStrs[4].Substring(4, 2), 16),
+                Convert.ToByte(guidPartStrs[4].Substring(6, 2), 16),
+                Convert.ToByte(guidPartStrs[4].Substring(8, 2), 16),
+                Convert.ToByte(guidPartStrs[4].Substring(10, 2), 16)
             );
+            return true;
         }
     }
     internal class PartitionLocation
