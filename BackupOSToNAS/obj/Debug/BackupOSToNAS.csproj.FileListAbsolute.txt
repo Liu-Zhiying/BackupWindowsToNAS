@@ -1,0 +1,11 @@
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\Debug\BackupOSToNAS.exe.config
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\Debug\BackupOSToNAS.exe
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\Debug\BackupOSToNAS.pdb
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.csproj.AssemblyReference.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.csproj.SuggestedBindingRedirects.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.Properties.Resources.resources
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.csproj.GenerateResource.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.csproj.CoreCompileInputs.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.exe
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.pdb
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\Debug\BackupOSToNAS.MainWindow.resources

@@ -1,0 +1,14 @@
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\x64\Debug\BackupOSToNAS.exe.config
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\x64\Debug\BackupOSToNAS.exe
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\x64\Debug\BackupOSToNAS.pdb
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\x64\Debug\Newtonsoft.Json.dll
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\bin\x64\Debug\Newtonsoft.Json.xml
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.AssemblyReference.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.SuggestedBindingRedirects.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.MainWindow.resources
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.Properties.Resources.resources
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.GenerateResource.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.CoreCompileInputs.cache
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.CopyComplete
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.exe
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.pdb
