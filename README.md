@@ -1,6 +1,6 @@
 # BackupWindowsToNAS
 
-[Englist](README_EN_US.md)
+[English](README_EN_US.md)
 
 针对NAS用户的Windows分区备份工具，使用SMB协议
 
