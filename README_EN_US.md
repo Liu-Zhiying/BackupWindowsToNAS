@@ -24,6 +24,8 @@ A application for users who want backup their Windows partition to NAS by SMB pr
 
 * If you are Windows 8 or higher x64 user,using Software build with .NET Framework 4
 
+* Run BackupOSToNAS.exe in package and input parameters then click button
+
 ### Note
 
 * SMB1.0 is unsupported
