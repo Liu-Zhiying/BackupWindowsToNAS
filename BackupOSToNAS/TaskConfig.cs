@@ -15,7 +15,7 @@ namespace BackupOSToNAS
         bool Read(string fileName);
     }
     //备份参数信息，最终写入为配置文件，交给PE中的程序执行备份任务
-    internal class BackupToNASConfig : ITaskConfig
+    internal class BackupAndRestoreConfig : ITaskConfig
     {
         private static Encoding utf8Encoding;
         public const string TargetProperty = "Target";
@@ -30,11 +30,11 @@ namespace BackupOSToNAS
         public const string RestoreOperation = "restore";
         public const string BackupOperation = "backup";
         public Dictionary<string, string> KeyValues { get; private set; }
-        static BackupToNASConfig()
+        static BackupAndRestoreConfig()
         {
             utf8Encoding = new UTF8Encoding(false);
         }
-        public BackupToNASConfig(
+        public BackupAndRestoreConfig(
             string target, string nasName, 
             string nasPath, string nasUser, 
             string nasPassword, string operation, 

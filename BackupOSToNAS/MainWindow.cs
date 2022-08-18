@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Windows.Forms;
 
@@ -14,8 +15,18 @@ namespace BackupOSToNAS
             List<string> ps = Functions.GetCurrentMountPoints();
             partitionComboBox.Items.AddRange(ps.ToArray());
         }
-        private void backupBtn_Click(object sender, EventArgs e)
+        //备份和还原的操作只是config一个字段的不同
+        //所以这个过程单独写一个方法被按钮事件函数调用
+        private void StartOperate(string operate)
         {
+            string defaultBootItemGuidStr = Functions.GetBootDefaultItem();
+            if (defaultBootItemGuidStr.Length == 0)
+            {
+                MessageBox.Show("程序需要默认启动项目确定固件类型和启动文件类型\n" +
+                    "但是现在没有默认启动项目，请在msconfig中设置默认启动项目");
+                return;
+            }
+
             //检查用户是否输入必须的参数
             if (!CheckUserInput())
                 return;
@@ -33,13 +44,12 @@ namespace BackupOSToNAS
 
                 if (callCode)
                 {
-                    Guid defaultBootItemGuid = new Guid();
-                    callCode = Functions.ParseGuid(Functions.GetBootDefaultItem(), out defaultBootItemGuid);
-                    NASUserBox.Text = defaultBootItemGuid.ToString();
+                    Guid defaultBootItemGuid = Guid.Empty;
+                    callCode = Functions.ParseGuid(defaultBootItemGuidStr, out defaultBootItemGuid);
                     if (callCode)
                     {
                         Guid deviceGuid = Guid.NewGuid(), OSLoaderGuid = Guid.NewGuid();
-                        BackupToNASConfig config = new BackupToNASConfig
+                        BackupAndRestoreConfig config = new BackupAndRestoreConfig
                         (
                             //硬盘号是0 base，传递给PERunner的时候改为1 base
                             $"{partitionLocation.diskNumber + 1}:{partitionLocation.partitionNumber}",
@@ -47,12 +57,30 @@ namespace BackupOSToNAS
                             NASPathBox.Text,
                             NASUserBox.Text,
                             NASPasswordBox.Text,
-                            BackupToNASConfig.BackupOperation,
+                            operate,
                             deviceGuid,
                             OSLoaderGuid,
                             defaultBootItemGuid
                         );
                         config.Write("config.json");
+
+                        //修改WindowsPE，放入备份程序
+                        string result = Functions.ModifyWindowsPE();
+                        if (result != null)
+                        {
+                            MessageBox.Show(result);
+                            return;
+                        }
+
+                        //添加WindowsPE启动项并设置为默认
+                        if (!Functions.AddWinPEBootLoader(deviceGuid, OSLoaderGuid))
+                        {
+                            MessageBox.Show("修改引导配置失败");
+                            return;
+                        }
+
+                        //重启电脑
+                        Process.Start("shutdown", "/r /t 0");
                         return;
                     }
                 }
@@ -60,11 +88,15 @@ namespace BackupOSToNAS
             //若分区的物理路径，硬盘号，分区号之一获取错误，视为参数错误
             MessageBox.Show("备份参数错误");
         }
+        private void backupBtn_Click(object sender, EventArgs e)
+        {
+            StartOperate(BackupAndRestoreConfig.BackupOperation);  
+        }
         private void restoreBtn_Click(object sender, EventArgs e)
         {
-            if (!CheckUserInput())
-                return;
+            StartOperate(BackupAndRestoreConfig.RestoreOperation);
         }
+        //检查用户有没有输入必须项目
         private bool CheckUserInput()
         {
             if (partitionComboBox.SelectedItem == null)

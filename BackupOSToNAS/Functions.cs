@@ -12,14 +12,67 @@ namespace BackupOSToNAS
 {
     internal static class Functions
     {
-        static Random random;
-        static Functions()
+        //修改Windows PE，加入PE备份程序
+        internal static string ModifyWindowsPE()
         {
-            random = new Random();
+            ProcessStartInfo startInfo;
+            Process dismProcess;
+            string appPath = GetApplicationFullPath();
+            try
+            {
+                startInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    FileName = $"{appPath}\\Tools\\dism.exe",
+                    Arguments = $"/Mount-Image /ImageFile:{'\"' + appPath + "\\winpe.wim" + '\"'} /Index:1 /MountDir:{'\"' + appPath + "\\mount" + '\"'}",
+                    CreateNoWindow = true
+                };
+                dismProcess = Process.Start(startInfo);
+                dismProcess.WaitForExit();
+                if (dismProcess.ExitCode != 0)
+                    throw new Exception("Mount Windows PE failed!");
+
+
+                File.Copy(appPath + "\\PERunner.exe", appPath + "\\mount\\PERunner.exe", true);
+                File.Copy(appPath + "\\Ghostx64.exe", appPath + "\\mount\\Ghostx64.exe", true);
+                File.Copy(appPath + "\\config.json", appPath + "\\mount\\config.json", true);
+                File.Copy(appPath + "\\shutdown.exe", appPath + "\\mount\\shutdown.exe", true);
+
+                string PEStartupScriptContent = File.ReadAllText($"{appPath}\\mount\\Windows\\System32\\Startnet.cmd");
+                if (!PEStartupScriptContent.ToLower().Contains("%systemdrive%\\perunner.exe"))
+                {
+                    PEStartupScriptContent += "\n%SystemDrive%\\PERunner.exe";
+                    File.WriteAllText($"{appPath}\\mount\\Windows\\System32\\Startnet.cmd", PEStartupScriptContent);
+                }
+
+                startInfo.UseShellExecute = true;
+                startInfo.FileName = $"{appPath}\\Tools\\dism.exe";
+                startInfo.Arguments = $"/Unmount-Image  /MountDir:{'\"' + appPath + "\\mount" + '\"'} /Commit";
+                startInfo.CreateNoWindow = true;
+                dismProcess = Process.Start(startInfo);
+                dismProcess.WaitForExit();
+                if (dismProcess.ExitCode != 0)
+                    throw new Exception("Unmount Windows PE failed!");
+            }
+            catch (Exception e)
+            {
+                startInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    FileName = $"{appPath}\\Tools\\dism.exe",
+                    Arguments = $"/Unmount-Image  /MountDir:{'\"' + appPath + "\\mount" + '\"'} /Discard",
+                    CreateNoWindow = true
+                };
+                dismProcess = Process.Start(startInfo);
+                dismProcess.WaitForExit();
+                return e.Message;
+            }
+            return null;
         }
         //添加WindowsPE启动项
         internal static bool AddWinPEBootLoader(Guid devicePropertyGuid, Guid OSLoaderPropertyGuid)
         {
+            string applicationPath = GetApplicationFullPath();
             try
             {
                 bool isUEFIBoot = false;
@@ -33,7 +86,7 @@ namespace BackupOSToNAS
                     throw new Exception("未知的固件类型！");
 
                 //解析应用全路径，应用盘符，去除应用盘符的全路径
-                string applicationPath = GetApplicationFullPath();
+
                 string applicationPartitionName = GetPartitionNameFromFullPath(applicationPath);
                 string applicationPathWithoutPartitonName = GetPathWithoutPartitionNameFromFullPath(applicationPath);
                 if (applicationPartitionName == null)
@@ -52,7 +105,6 @@ namespace BackupOSToNAS
                     $"/set {'{' + OSLoaderPropertyGuid.ToString() + '}'} inherit {'{'}bootloadersettings{'}'}",
                     $"/set {'{' + OSLoaderPropertyGuid.ToString() + '}'} path {pathArg}",
                     $"/set {'{' + OSLoaderPropertyGuid.ToString() + '}'} nx OptIn",
-                    $"/set {'{' + OSLoaderPropertyGuid.ToString() + '}'} bootmenupolicy Standard",
                     $"/set {'{' + OSLoaderPropertyGuid.ToString() + '}'} winpe Yes",
                     $"/set {'{' + devicePropertyGuid.ToString() + '}'} ramdisksdidevice partition={applicationPartitionName}",
                     $"/set {'{' + devicePropertyGuid.ToString() + '}'} ramdisksdipath {'\\' + applicationPathWithoutPartitonName + "\\boot.sdi"}",
@@ -64,7 +116,7 @@ namespace BackupOSToNAS
                     ProcessStartInfo startInfo = new ProcessStartInfo
                     {
                         UseShellExecute = true,
-                        FileName = "bcdedit.exe",
+                        FileName = $"bcdedit.exe",
                         Arguments = argument,
                         CreateNoWindow = true
                     };
@@ -87,7 +139,7 @@ namespace BackupOSToNAS
                     ProcessStartInfo startInfo = new ProcessStartInfo
                     {
                         UseShellExecute = true,
-                        FileName = "bcdedit.exe",
+                        FileName = $"bcdedit.exe",
                         Arguments = argument,
                         CreateNoWindow = true
                     };
@@ -115,25 +167,32 @@ namespace BackupOSToNAS
         {
             string defaultObjName = "";
             RegistryKey regKey = Registry.LocalMachine.OpenSubKey("BCD00000000\\Objects");
+            RegistryKey tempKey = null;
             string targetSubKeyName = null;
-            foreach (string subKeyName in regKey.GetSubKeyNames())
+            try
             {
-                RegistryKey regSubKey = regKey.OpenSubKey(subKeyName + "\\Description");
-                int value = (int)regSubKey.GetValue("Type");
-                regSubKey.Close();
-                if ((value >> 28) == 0x1 && (value & 0xfffff) == 0x2)
+                foreach (string subKeyName in regKey.GetSubKeyNames())
                 {
-                    targetSubKeyName = subKeyName;
-                    break;
+                    RegistryKey regSubKey = regKey.OpenSubKey(subKeyName + "\\Description");
+                    int value = (int)regSubKey.GetValue("Type");
+                    regSubKey.Close();
+                    if ((value >> 28) == 0x1 && (value & 0xfffff) == 0x2)
+                    {
+                        targetSubKeyName = subKeyName;
+                        break;
+                    }
                 }
-            }
-            if (targetSubKeyName != null)
-            {
-                RegistryKey tempKey = regKey.OpenSubKey(targetSubKeyName + "\\Elements\\23000003");
+                tempKey = regKey.OpenSubKey(targetSubKeyName + "\\Elements\\23000003");
                 defaultObjName = (string)tempKey.GetValue("Element");
-                tempKey.Close();
             }
-            regKey.Close();
+            catch
+            {
+
+            }
+            if (tempKey != null)
+                tempKey.Close();
+            if (regKey != null)
+                regKey.Close();
             return defaultObjName;
         }
         //基于Windows启动文件名的后缀判断固件类型
