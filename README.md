@@ -26,7 +26,7 @@ Windows 7 64位用户使用 .NET Framework 3.5构建的版本
 
 Windows 8 和更高版本 64位用户使用 .NET Framework 4.0构建的版本  
 
-下载完成之后，输入参数，选择备份或者还原即可  
+下载完成之后，运行BackupOSToNAS.exe，输入参数，选择备份或者还原即可  
 
 ### 注意
 
