@@ -40,6 +40,8 @@ Windows 8 和更高版本 64位用户使用 .NET Framework 4.0构建的版本
 
 * 无法保存上次的参数
 
+* 本软件使用Ghost备份，文件后缀请写gho
+
 ## 如何编译本项目
 
 [Document in English](README_COMPILE_EN_US.md)

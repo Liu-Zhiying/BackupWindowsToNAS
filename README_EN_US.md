@@ -38,6 +38,8 @@ A application for users who want backup their Windows partition to NAS by SMB pr
 
 * Can not save parameters last using.
 
+* This software using Ghost for backuping, please write the suffix of file to gho
+
 ## How to compile this program
 
 [Document in English](README_COMPILE_EN_US.md)
