@@ -2,7 +2,7 @@
 
 ## Environment
 
-* Visual Studio 2022 which installed C++ desktop development pack and .NET desktop development
+* Visual Studio 2022 which installed C++ desktop development pack and .NET desktop development pack
 
 * Windows wchich enabled .NET Framework 3.5
 

@@ -1,28 +1,67 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace BackupOSToNAS
 {
     internal static class Functions
     {
+        //检查NasName NasPath NasUser NasPassword
+        internal static bool ParamIsVaild(string NASName, string NASPath, string NASUser, string NASPassword)
+        {
+            bool result = false;
+            if (NASPath.IndexOf('\\') == -1)
+                return result;
+            string NASSharedFolderName = NASPath.Substring(0, NASPath.IndexOf('\\'));
+            string NASConnectCmd = $"/C \"net use \"\\\\{NASName}\\{NASSharedFolderName}\" {NASPassword} /user:\"{NASUser}\"\"";
+            string NASDisconnectCmd = $"/C \"net use \"\\\\{NASName}\\{NASSharedFolderName}\" /delete\"";
+            ProcessStartInfo info = new ProcessStartInfo()
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                FileName = "cmd.exe",
+                Arguments = NASConnectCmd
+            };
+            Process process = Process.Start(info);
+            process.WaitForExit();
+            if (process.ExitCode == 0)
+            {
+                string temp = NASPath;
+                for (int index = temp.Length - 1; index > -1; index--)
+                {
+                    if (temp[index] == '\\')
+                    {
+                        temp = temp.Substring(0, index);
+                        break;
+                    }
+                }
+                if (File.Exists($"\\\\{NASName}\\{NASPath}") || Directory.Exists($"\\\\{NASName}\\{temp}"))
+                {
+                    result = true;
+                }
+            }
+            info.Arguments = NASDisconnectCmd;
+            process = Process.Start(info);
+            process.WaitForExit();
+            return result;
+        }
         //修改Windows PE，加入PE备份程序
-        internal static string ModifyWindowsPE()
+        internal static string ModifyWindowsPE(Action callback)
         {
             ProcessStartInfo startInfo;
             Process dismProcess;
             string appPath = GetApplicationFullPath();
             try
             {
+                callback();
                 startInfo = new ProcessStartInfo
                 {
-                    UseShellExecute = true,
+                    UseShellExecute = false,
                     FileName = $"{appPath}\\Tools\\dism.exe",
                     Arguments = $"/Mount-Image /ImageFile:{'\"' + appPath + "\\winpe.wim" + '\"'} /Index:1 /MountDir:{'\"' + appPath + "\\mount" + '\"'}",
                     CreateNoWindow = true
@@ -32,7 +71,7 @@ namespace BackupOSToNAS
                 if (dismProcess.ExitCode != 0)
                     throw new Exception("Mount Windows PE failed!");
 
-
+                callback();
                 File.Copy(appPath + "\\PERunner.exe", appPath + "\\mount\\PERunner.exe", true);
                 File.Copy(appPath + "\\Ghostx64.exe", appPath + "\\mount\\Ghostx64.exe", true);
                 File.Copy(appPath + "\\config.json", appPath + "\\mount\\config.json", true);
@@ -45,7 +84,8 @@ namespace BackupOSToNAS
                     File.WriteAllText($"{appPath}\\mount\\Windows\\System32\\Startnet.cmd", PEStartupScriptContent);
                 }
 
-                startInfo.UseShellExecute = true;
+                callback();
+                startInfo.UseShellExecute = false;
                 startInfo.FileName = $"{appPath}\\Tools\\dism.exe";
                 startInfo.Arguments = $"/Unmount-Image  /MountDir:{'\"' + appPath + "\\mount" + '\"'} /Commit";
                 startInfo.CreateNoWindow = true;
@@ -58,7 +98,7 @@ namespace BackupOSToNAS
             {
                 startInfo = new ProcessStartInfo
                 {
-                    UseShellExecute = true,
+                    UseShellExecute = false,
                     FileName = $"{appPath}\\Tools\\dism.exe",
                     Arguments = $"/Unmount-Image  /MountDir:{'\"' + appPath + "\\mount" + '\"'} /Discard",
                     CreateNoWindow = true
@@ -115,7 +155,7 @@ namespace BackupOSToNAS
                 {
                     ProcessStartInfo startInfo = new ProcessStartInfo
                     {
-                        UseShellExecute = true,
+                        UseShellExecute = false,
                         FileName = $"bcdedit.exe",
                         Arguments = argument,
                         CreateNoWindow = true
@@ -138,7 +178,7 @@ namespace BackupOSToNAS
                 {
                     ProcessStartInfo startInfo = new ProcessStartInfo
                     {
-                        UseShellExecute = true,
+                        UseShellExecute = false,
                         FileName = $"bcdedit.exe",
                         Arguments = argument,
                         CreateNoWindow = true
@@ -210,7 +250,7 @@ namespace BackupOSToNAS
         private static string GetApplicationFullPath()
         {
             string applicationPath = Process.GetCurrentProcess().MainModule.FileName;
-            for (int i = applicationPath.Length - 1; i != 0; --i)
+            for (int i = applicationPath.Length - 1; i > -1; --i)
             {
                 if (applicationPath[i] == '\\')
                 {
@@ -335,6 +375,21 @@ namespace BackupOSToNAS
                 Convert.ToByte(guidPartStrs[4].Substring(10, 2), 16)
             );
             return true;
+        }
+        internal static string QueryMountPointByPartitionLocation(int diskNumber, int partitionNumber)
+        {
+            List<string> mountPoints = GetCurrentMountPoints();
+            PartitionLocation location;
+            foreach (string mountPoint in mountPoints)
+            {
+                string mountPointRoot = mountPoint.Replace("\\", "");
+                string physicalPath = GetPhysicalPath(mountPointRoot);
+                physicalPath = physicalPath.Replace("\\Device\\", "\\\\.\\");
+                GetPartitionLocation(physicalPath, out location);
+                if (location.diskNumber + 1 == diskNumber && location.partitionNumber == partitionNumber)
+                    return mountPoint;
+            }
+            return "";
         }
     }
     internal class PartitionLocation

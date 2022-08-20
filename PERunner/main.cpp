@@ -208,7 +208,7 @@ int main()
 	//…˙≥…√¸¡Ó––
 	printf("Generating command lines...\n");
 	std::vector<std::string> taskCmds = GenTaskCommandLines(&taskInfo), cleanCmds = GenCleanupCommandLines(&taskInfo);
-	if (!taskCmds.size() || !taskCmds.size())
+	if (!taskCmds.size() || !cleanCmds.size())
 	{
 		MessageBoxA(NULL, "Generating command lines failed!", "Runtime Error:", MB_ICONERROR | MB_OK);
 		json_object_put(taskInfo.obj);

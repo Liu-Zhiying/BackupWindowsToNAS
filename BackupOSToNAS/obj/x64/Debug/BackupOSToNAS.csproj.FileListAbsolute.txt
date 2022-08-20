@@ -12,3 +12,4 @@ D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.Co
 D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.csproj.CopyComplete
 D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.exe
 D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.pdb
+D:\Data\C#Code\BackupOSToNAS\BackupOSToNAS\obj\x64\Debug\BackupOSToNAS.PreparationNotice.resources

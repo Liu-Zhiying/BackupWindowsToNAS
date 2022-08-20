@@ -1,6 +1,6 @@
 ﻿  main.cpp
-  正在生成代码
   Previous IPDB not found, fall back to full compilation.
+  正在生成代码
   All 215 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   已完成代码的生成
   PERunner.vcxproj -> D:\Data\C#Code\BackupOSToNAS\x64\Release\PERunner.exe

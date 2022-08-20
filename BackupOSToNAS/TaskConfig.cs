@@ -53,6 +53,21 @@ namespace BackupOSToNAS
                 { LastDefaultGuidProperty, LastDefaultGuid.ToString() }
             };
         }
+        public BackupAndRestoreConfig()
+        {
+            KeyValues = new Dictionary<string, string>
+            {
+                { TargetProperty, "" },
+                { NASNameProperty, "" },
+                { NASPathProperty, "" },
+                { NASUserProperty, "" },
+                { NASPasswordProperty, "" },
+                { OperationProperty, "" },
+                { DeviceGuidProperty, "" },
+                { OSLoaderGuidProperty, "" },
+                { LastDefaultGuidProperty, "" }
+            };
+        }
         public bool Read(string fileName)
         {
             string configText = "";

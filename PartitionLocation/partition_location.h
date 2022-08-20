@@ -12,4 +12,6 @@
 
 C_LINK DLL BOOL CALLBACK GetPartitionLocationW(IN LPCWSTR pWin32NamespaceName, OUT LPUINT pDiskNumber, OUT LPUINT pPartitionNumber);
 
+C_LINK DLL BOOL CALLBACK PartitionLocationToMountPointW(IN UINT diskNumber, IN UINT partitionNumber, IN OUT LPCWSTR lpStrBuffer, IN OUT LPDWORD lpBufferBytes);
+
 #endif // !PARTITION_LOCATION_H
