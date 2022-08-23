@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -13,12 +12,13 @@ namespace BackupOSToNAS
 {
     public partial class PreparationNotice : Form
     {
+        //为了支持.NET Framework 3.0，建立的委托类型
+        delegate void SimpleAction();
         public PreparationNotice(Form fatherForm, string target, string operation, string NASName, string NASPath, string NASUser, string NASPassword)
         {
             InitializeComponent();
             this.fatherForm = fatherForm;
             fatherForm.Enabled = false;
-            step = -1;
             this.NASName = NASName;
             this.NASPath = NASPath;
             this.NASPassword = NASPassword;
@@ -41,110 +41,103 @@ namespace BackupOSToNAS
             {
                 MessageBox.Show("程序需要默认启动项目确定固件类型和启动文件类型\n" +
                     "但是现在没有默认启动项目，请在msconfig中设置默认启动项目");
-                Invoke(new Action(Close));
+                Invoke(new SimpleAction(Close));
                 return;
             }
 
-            if(!Functions.ParamIsVaild(NASName,NASPath,NASUser,NASPassword))
+            if (!Functions.ParamIsVaild(NASName, NASPath, NASUser, NASPassword))
             {
                 MessageBox.Show("NAS参数设置错误");
-                Invoke(new Action(Close));
+                Invoke(new SimpleAction(Close));
                 return;
             }
 
-            //获取要备份分区
-            string targetDevice = target;
-            StringBuilder targetPhysicalPathBuilder = new StringBuilder(Functions.GetPhysicalPath(targetDevice.Substring(0, targetDevice.Length - 1)));
-            //获取备份分区的物理路径和硬盘号和分区号
-            if (targetPhysicalPathBuilder.Length != 0)
+            PartitionLocation partitionLocation = new PartitionLocation();
+            bool callCode = Functions.GetPartitionLocation(target.Replace("\\", ""), out partitionLocation);
+
+            if (callCode)
             {
-                targetPhysicalPathBuilder.Replace("\\Device\\", "\\\\.\\");
-
-                PartitionLocation partitionLocation = new PartitionLocation();
-                bool callCode = Functions.GetPartitionLocation(targetPhysicalPathBuilder.ToString(), out partitionLocation);
-
+                Guid defaultBootItemGuid = Guid.Empty;
+                callCode = Functions.ParseGuid(defaultBootItemGuidStr, out defaultBootItemGuid);
                 if (callCode)
                 {
-                    Guid defaultBootItemGuid = Guid.Empty;
-                    callCode = Functions.ParseGuid(defaultBootItemGuidStr, out defaultBootItemGuid);
-                    if (callCode)
+                    Guid deviceGuid = Guid.NewGuid(), OSLoaderGuid = Guid.NewGuid();
+                    BackupAndRestoreConfig config = new BackupAndRestoreConfig
+                    (
+                        //硬盘号是0 base，传递给PERunner的时候改为1 base
+                        $"{partitionLocation.diskNumber}:{partitionLocation.partitionNumber}",
+                        NASName,
+                        NASPath,
+                        NASUser,
+                        NASPassword,
+                        (string)operation,
+                        deviceGuid,
+                        OSLoaderGuid,
+                        defaultBootItemGuid
+                    );
+                    config.Write("config.json");
+
+                    //修改WindowsPE，放入备份程序
+                    string result = Functions.ModifyWindowsPE(new Action<int>(StepIncrement));
+                    if (result != null)
                     {
-                        Guid deviceGuid = Guid.NewGuid(), OSLoaderGuid = Guid.NewGuid();
-                        BackupAndRestoreConfig config = new BackupAndRestoreConfig
-                        (
-                            //硬盘号是0 base，传递给PERunner的时候改为1 base
-                            $"{partitionLocation.diskNumber + 1}:{partitionLocation.partitionNumber}",
-                            NASName,
-                            NASPath,
-                            NASUser,
-                            NASPassword,
-                            (string)operation,
-                            deviceGuid,
-                            OSLoaderGuid,
-                            defaultBootItemGuid
-                        );
-                        config.Write("config.json");
-
-                        //修改WindowsPE，放入备份程序
-                        string result = Functions.ModifyWindowsPE(new Action(StepIncrement));
-                        if (result != null)
-                        {
-                            MessageBox.Show(result);
-                            Invoke(new Action(Close));
-                            return;
-                        }
-
-                        //添加WindowsPE启动项并设置为默认
-                        StepIncrement();
-                        if (!Functions.AddWinPEBootLoader(deviceGuid, OSLoaderGuid))
-                        {
-                            MessageBox.Show("修改引导配置失败");
-                            Invoke(new Action(Close));
-                            return;
-                        }
-
-                        //重启电脑
-                        Process.Start("shutdown", "/r /t 0");
+                        MessageBox.Show(result);
+                        Invoke(new SimpleAction(Close));
                         return;
                     }
+
+                    //添加WindowsPE启动项并设置为默认
+                    StepIncrement(4);
+                    if (!Functions.AddWinPEBootLoader(deviceGuid, OSLoaderGuid))
+                    {
+                        MessageBox.Show("修改引导配置失败");
+                        Invoke(new SimpleAction(Close));
+                        return;
+                    }
+
+                    //重启电脑
+                    Process.Start("shutdown", "/r /t 0");
+                    Invoke(new SimpleAction(Close));
+                    return;
                 }
             }
             //若分区的物理路径，硬盘号，分区号之一获取错误，视为参数错误
             MessageBox.Show("备份参数错误");
+            Invoke(new SimpleAction(Close));
         }
 
         private void PreparationNotice_FormClosed(object sender, FormClosedEventArgs e)
         {
-            fatherForm.Enabled = true;
+            Invoke(new Action<Control>(EnableControl), fatherForm);
         }
 
-        private void StepIncrement()
+        private void StepIncrement(int step)
         {
-            lock(this)
+            switch (step)
             {
-                ++step;
-                switch (step)
-                {
-                    case 0:
-                        step1.Enabled = true;
-                        break;
-                    case 1:
-                        step2.Enabled = true;
-                        break;
-                    case 2:
-                        step3.Enabled = true;
-                        break;
-                    case 3:
-                        step4.Enabled = true;
-                        break;
-                    default:
-                        break;
-                }
+                case 1:
+                    Invoke(new Action<Control>(EnableControl), step1);
+                    break;
+                case 2:
+                    Invoke(new Action<Control>(EnableControl), step2);
+                    break;
+                case 3:
+                    Invoke(new Action<Control>(EnableControl), step3);
+                    break;
+                case 4:
+                    Invoke(new Action<Control>(EnableControl), step4);
+                    break;
+                default:
+                    break;
             }
         }
 
+        private void EnableControl(Control control)
+        {
+            control.Enabled = true;
+        }
+
         Form fatherForm;
-        int step;
         string NASUser;
         string NASPath;
         string NASName;

@@ -103,7 +103,7 @@ std::vector<std::string> GenTaskCommandLines(TASK_INFO* pTaskInfo)
 
 	std::string temp = pTaskInfo->pOperation;
 	std::transform(temp.begin(), temp.end(), temp.begin(), tolower);
-	cmdStr += GetApplicationPath() + "\\Ghostx64 ";
+	cmdStr += GetApplicationPath() + "\\Ghost ";
 	cmdStr += "-clone,";
 	if (temp == "restore")
 	{

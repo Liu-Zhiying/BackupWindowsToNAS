@@ -1,0 +1,3 @@
+﻿  main.cpp
+LINK : fatal error LNK1123: 转换到 COFF 期间失败: 文件无效或损坏
+CVTRES : fatal error CVT1107: “D:\Data\vcpkg\installed\x86-windows-static\debug\lib\json-c.lib”已损坏

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -10,14 +9,12 @@ namespace BackupOSToNAS
     {
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "GetLogicalDriveStringsW")]
         extern public static uint GetLogicalDriveStringsW(uint nBufferLength, IntPtr lpBuffer);
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "QueryDosDeviceW", CharSet = CharSet.Unicode)]
-        extern public static uint QueryDosDeviceW(string lpDeviceName, IntPtr lpTargetPath, uint ucchMax);
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "GetDriveTypeW", CharSet = CharSet.Unicode)]
         extern public static uint GetDriveTypeW(string lpRootPathName);
         [DllImport("kernel32.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "AllocConsole")]
         extern public static bool AllocConsole();
         [DllImport("PartitionLocation.dll", CallingConvention = CallingConvention.StdCall,EntryPoint = "GetPartitionLocationW",CharSet = CharSet.Unicode)]
-        extern public static bool GetPartitionLocationW(string pWin32NamespaceName, IntPtr pDiskNumber, IntPtr pPartitionNumber);
+        extern public static bool GetPartitionLocationW(string pWin32NamespaceName, out uint pDiskNumber, out uint pPartitionNumber);
     }
     //固件类型枚举，用于GetFirmwareType
     enum FIRMWARE_TYPE

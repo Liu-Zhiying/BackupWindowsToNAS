@@ -1,1 +1,2 @@
-ResourcesWINPE_22H2_X64.wim filter=lfs diff=lfs merge=lfs -text
+Resources/WINPE_22H2_X64.wim filter=lfs diff=lfs merge=lfs -text
+Resources/WINPE_2004_X86.wim filter=lfs diff=lfs merge=lfs -text

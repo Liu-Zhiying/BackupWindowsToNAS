@@ -4,27 +4,27 @@
 
 针对NAS用户的Windows分区备份工具，使用SMB协议
 
-## 第二版更新内容
+## V2-fix 修复内容
 
-* 现在在输入NAS参数后可以浏览决定备份文件的位置
+* 修复WinForm多线程UI更新的编程错误
 
-* 现在可以读取上一次的NAS备份配置
+* 修复初始化失败会卡住的问题
 
-* 现在会对NAS备份参数进行检查
+* 添加 Vista 和 32位 Windows 支持（见系统要求）
 
-* UI优化，隐藏了调用命令的cmd窗口
+* 技术改变，Vista / Win7 版本的软件使用.NET Framework 3.0 构建（见技术栈）
 
 ## 技术栈
 
-* NET Framework 3.5 / 4.0  
+* .NET Framework 3.0 / 4.0  
 
 * Visual C++ 2022 (in Visual Studio 2022)  
 
 ## 系统要求
 
-* Windows 7 和 Windows Server 2008 R2 或更高 （限64位 Windows）  
+* Windows Vista 和 Windows Server 2008 或更高  
 
-* .NET Framework 4.0 (Windows 8 及更高) 或者 .NET Framework 3.5 (针对 Windows 7)
+* .NET Framework 4.0 (Windows 8 及更高) 或者 .NET Framework 3.0 (针对 Windows 7 和 Windows Vista)
 
 * 不需要安装Visual C++ Redistributable,所用的本机库静态链接到Visual C++ Runtime.
 
@@ -32,11 +32,15 @@
 
 到 [Release](https://github.com/Liu-Zhiying/BackupWindowsToNAS/releases) 下载软件包  
 
-Windows 7 64位用户使用 .NET Framework 3.5构建的版本  
+* Windows 7 和 Windows Vista 用户使用 .NET Framework 3.0构建的版本  
 
-Windows 8 和更高版本 64位用户使用 .NET Framework 4.0构建的版本  
+* Windows 8 和更高版本 用户使用 .NET Framework 4.0构建的版本  
 
-下载完成之后，运行BackupOSToNAS.exe，输入参数，选择备份或者还原即可  
+* 32位用户使用X86版本，64位用户使用X64版本
+
+* 下载完成之后，运行BackupOSToNAS.exe，输入参数，选择备份或者还原即可  
+
+* Vista 用户运行前额外操作 请安装 Tools 下的 wimmount.inf
 
 ### 注意
 
@@ -66,7 +70,7 @@ Windows 8 和更高版本 64位用户使用 .NET Framework 4.0构建的版本
 
 欢迎提issue或者联系我
 
-## 预告-下一个版本
+## 预告-V3
 
 * 将添加DISM备份支持
 

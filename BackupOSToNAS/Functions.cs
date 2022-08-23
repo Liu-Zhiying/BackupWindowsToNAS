@@ -51,19 +51,19 @@ namespace BackupOSToNAS
             return result;
         }
         //修改Windows PE，加入PE备份程序
-        internal static string ModifyWindowsPE(Action callback)
+        internal static string ModifyWindowsPE(Action<int> callback)
         {
             ProcessStartInfo startInfo;
             Process dismProcess;
             string appPath = GetApplicationFullPath();
             try
             {
-                callback();
+                callback(1);
                 startInfo = new ProcessStartInfo
                 {
                     UseShellExecute = false,
-                    FileName = $"{appPath}\\Tools\\dism.exe",
-                    Arguments = $"/Mount-Image /ImageFile:{'\"' + appPath + "\\winpe.wim" + '\"'} /Index:1 /MountDir:{'\"' + appPath + "\\mount" + '\"'}",
+                    FileName = $"{appPath}\\Tools\\imagex.exe",
+                    Arguments = $"/Mountrw {'\"' + appPath + "\\winpe.wim" + '\"'} 1 {'\"' + appPath + "\\mount" + '\"'}",
                     CreateNoWindow = true
                 };
                 dismProcess = Process.Start(startInfo);
@@ -71,9 +71,9 @@ namespace BackupOSToNAS
                 if (dismProcess.ExitCode != 0)
                     throw new Exception("Mount Windows PE failed!");
 
-                callback();
+                callback(2);
                 File.Copy(appPath + "\\PERunner.exe", appPath + "\\mount\\PERunner.exe", true);
-                File.Copy(appPath + "\\Ghostx64.exe", appPath + "\\mount\\Ghostx64.exe", true);
+                File.Copy(appPath + "\\Ghost.exe", appPath + "\\mount\\Ghost.exe", true);
                 File.Copy(appPath + "\\config.json", appPath + "\\mount\\config.json", true);
                 File.Copy(appPath + "\\shutdown.exe", appPath + "\\mount\\shutdown.exe", true);
 
@@ -84,10 +84,10 @@ namespace BackupOSToNAS
                     File.WriteAllText($"{appPath}\\mount\\Windows\\System32\\Startnet.cmd", PEStartupScriptContent);
                 }
 
-                callback();
+                callback(3);
                 startInfo.UseShellExecute = false;
-                startInfo.FileName = $"{appPath}\\Tools\\dism.exe";
-                startInfo.Arguments = $"/Unmount-Image  /MountDir:{'\"' + appPath + "\\mount" + '\"'} /Commit";
+                startInfo.FileName = $"{appPath}\\Tools\\imagex.exe";
+                startInfo.Arguments = $"/Unmount /Commit {'\"' + appPath + "\\mount" + '\"'}";
                 startInfo.CreateNoWindow = true;
                 dismProcess = Process.Start(startInfo);
                 dismProcess.WaitForExit();
@@ -99,8 +99,8 @@ namespace BackupOSToNAS
                 startInfo = new ProcessStartInfo
                 {
                     UseShellExecute = false,
-                    FileName = $"{appPath}\\Tools\\dism.exe",
-                    Arguments = $"/Unmount-Image  /MountDir:{'\"' + appPath + "\\mount" + '\"'} /Discard",
+                    FileName = $"{appPath}\\Tools\\imagex.exe",
+                    Arguments = $"/Unmount  {'\"' + appPath + "\\mount" + '\"'}",
                     CreateNoWindow = true
                 };
                 dismProcess = Process.Start(startInfo);
@@ -133,7 +133,7 @@ namespace BackupOSToNAS
                     throw new Exception("Wrong path of application");
 
                 //设置引导
-                string pathArg = isUEFIBoot ? "\\windows\\system32\\winload.efi" : "\\windows\\system32\\winload.exe";
+                string pathArg = isUEFIBoot ? "\\windows\\system32\\boot\\winload.efi" : "\\windows\\system32\\boot\\winload.exe";
                 string[] argumentLists = new string[]
                 {
                     $"/create {'{' + devicePropertyGuid.ToString() + '}'} /d \"Backup OS To NAS Device Options\" /device",
@@ -313,34 +313,14 @@ namespace BackupOSToNAS
             Marshal.FreeHGlobal(pBuffer);
             return result;
         }
-        //获取分区的Win32 Namespace 路径，核心是调用QueryDosDeviceW
-        internal static string GetPhysicalPath(string deviceName)
-        {
-            string result = "";
-            if (deviceName == null)
-                return result;
-            int bufferBytes = sizeof(char) * 32768;
-            IntPtr pBuffer = Marshal.AllocHGlobal(bufferBytes);
-            uint callCode = Native.QueryDosDeviceW(deviceName, pBuffer, (uint)bufferBytes / sizeof(char) - 1);
-            if (callCode != 0)
-                result = Marshal.PtrToStringUni(pBuffer);
-            Marshal.FreeHGlobal(pBuffer);
-            return result;
-        }
         //获取分区的硬盘号和分区号，调用GetPartitionLocationW
         //注意：被调用的函数非Windows API，其定义见项目PartitionLocation
-        internal static bool GetPartitionLocation(string win32NamespaceName, out PartitionLocation result)
+        internal static bool GetPartitionLocation(string mountPointRoot, out PartitionLocation result)
         {
+            mountPointRoot = "\\\\.\\" + mountPointRoot;
             result = new PartitionLocation() { partitionNumber = 0, diskNumber = 0 };
-            IntPtr pDiskNumber = Marshal.AllocHGlobal(sizeof(uint)), pPartitionNumber = Marshal.AllocHGlobal(sizeof(uint));
-            bool callCode = Native.GetPartitionLocationW(win32NamespaceName, pDiskNumber, pPartitionNumber);
-            if (callCode)
-            {
-                result.diskNumber = (uint)Marshal.ReadInt32(pDiskNumber, 0);
-                result.partitionNumber = (uint)Marshal.ReadInt32(pPartitionNumber, 0);
-            }
-            Marshal.FreeHGlobal(pDiskNumber);
-            Marshal.FreeHGlobal(pPartitionNumber);
+            bool callCode = Native.GetPartitionLocationW(mountPointRoot, out result.diskNumber, out result.partitionNumber);
+            result.diskNumber += 1;
             return callCode;
         }
         //从字符串解析Guid，注意写这个方法是因为.NET franmework 3.5 没有 Guid.Parse()
@@ -379,14 +359,11 @@ namespace BackupOSToNAS
         internal static string QueryMountPointByPartitionLocation(int diskNumber, int partitionNumber)
         {
             List<string> mountPoints = GetCurrentMountPoints();
-            PartitionLocation location;
             foreach (string mountPoint in mountPoints)
             {
                 string mountPointRoot = mountPoint.Replace("\\", "");
-                string physicalPath = GetPhysicalPath(mountPointRoot);
-                physicalPath = physicalPath.Replace("\\Device\\", "\\\\.\\");
-                GetPartitionLocation(physicalPath, out location);
-                if (location.diskNumber + 1 == diskNumber && location.partitionNumber == partitionNumber)
+                GetPartitionLocation("\\\\.\\" + mountPointRoot, out PartitionLocation location);
+                if (location.diskNumber == diskNumber && location.partitionNumber == partitionNumber)
                     return mountPoint;
             }
             return "";
