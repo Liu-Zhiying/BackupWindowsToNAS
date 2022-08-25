@@ -41,8 +41,15 @@
             this.NASUserBox = new System.Windows.Forms.TextBox();
             this.restoreBtn = new System.Windows.Forms.Button();
             this.backupBtn = new System.Windows.Forms.Button();
-            this.lookupBtn = new System.Windows.Forms.Button();
+            this.lookupNASBtn = new System.Windows.Forms.Button();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.fileTypeBox = new System.Windows.Forms.ComboBox();
+            this.backupFileTypeLabel = new System.Windows.Forms.Label();
+            this.argLabel = new System.Windows.Forms.Label();
+            this.argsBox = new System.Windows.Forms.TextBox();
+            this.useLocalBox = new System.Windows.Forms.CheckBox();
+            this.localPathBox = new System.Windows.Forms.TextBox();
+            this.lookupLocalBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // PartitionLabel
@@ -58,7 +65,7 @@
             // partitionComboBox
             // 
             this.partitionComboBox.FormattingEnabled = true;
-            this.partitionComboBox.Location = new System.Drawing.Point(94, 8);
+            this.partitionComboBox.Location = new System.Drawing.Point(111, 8);
             this.partitionComboBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.partitionComboBox.Name = "partitionComboBox";
             this.partitionComboBox.Size = new System.Drawing.Size(219, 23);
@@ -67,7 +74,7 @@
             // NASNameLabel
             // 
             this.NASNameLabel.AutoSize = true;
-            this.NASNameLabel.Location = new System.Drawing.Point(321, 12);
+            this.NASNameLabel.Location = new System.Drawing.Point(338, 12);
             this.NASNameLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.NASNameLabel.Name = "NASNameLabel";
             this.NASNameLabel.Size = new System.Drawing.Size(76, 15);
@@ -76,11 +83,11 @@
             // 
             // NASNameBox
             // 
-            this.NASNameBox.Location = new System.Drawing.Point(405, 6);
+            this.NASNameBox.Location = new System.Drawing.Point(426, 6);
             this.NASNameBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.NASNameBox.Name = "NASNameBox";
-            this.NASNameBox.Size = new System.Drawing.Size(244, 25);
-            this.NASNameBox.TabIndex = 3;
+            this.NASNameBox.Size = new System.Drawing.Size(223, 25);
+            this.NASNameBox.TabIndex = 2;
             // 
             // NASPathLabel
             // 
@@ -94,26 +101,26 @@
             // 
             // NASPathBox
             // 
-            this.NASPathBox.Location = new System.Drawing.Point(94, 37);
+            this.NASPathBox.Location = new System.Drawing.Point(111, 37);
             this.NASPathBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.NASPathBox.Name = "NASPathBox";
             this.NASPathBox.Size = new System.Drawing.Size(136, 25);
-            this.NASPathBox.TabIndex = 5;
+            this.NASPathBox.TabIndex = 3;
             // 
             // TipLabel1
             // 
             this.TipLabel1.AutoSize = true;
-            this.TipLabel1.Location = new System.Drawing.Point(325, 40);
+            this.TipLabel1.Location = new System.Drawing.Point(338, 40);
             this.TipLabel1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.TipLabel1.Name = "TipLabel1";
-            this.TipLabel1.Size = new System.Drawing.Size(326, 15);
+            this.TipLabel1.Size = new System.Drawing.Size(296, 15);
             this.TipLabel1.TabIndex = 6;
-            this.TipLabel1.Text = "（路径使用Windows路径格式,包括备份文件名）";
+            this.TipLabel1.Text = "（使用Windows路径格式,包括备份文件名）";
             // 
             // NASPasswordLabel
             // 
             this.NASPasswordLabel.AutoSize = true;
-            this.NASPasswordLabel.Location = new System.Drawing.Point(323, 71);
+            this.NASPasswordLabel.Location = new System.Drawing.Point(338, 71);
             this.NASPasswordLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.NASPasswordLabel.Name = "NASPasswordLabel";
             this.NASPasswordLabel.Size = new System.Drawing.Size(76, 15);
@@ -132,34 +139,34 @@
             // 
             // NASPasswordBox
             // 
-            this.NASPasswordBox.Location = new System.Drawing.Point(407, 68);
+            this.NASPasswordBox.Location = new System.Drawing.Point(426, 68);
             this.NASPasswordBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.NASPasswordBox.Name = "NASPasswordBox";
-            this.NASPasswordBox.Size = new System.Drawing.Size(244, 25);
-            this.NASPasswordBox.TabIndex = 9;
+            this.NASPasswordBox.Size = new System.Drawing.Size(225, 25);
+            this.NASPasswordBox.TabIndex = 6;
             // 
             // NASUserBox
             // 
-            this.NASUserBox.Location = new System.Drawing.Point(94, 68);
+            this.NASUserBox.Location = new System.Drawing.Point(111, 68);
             this.NASUserBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.NASUserBox.Name = "NASUserBox";
             this.NASUserBox.Size = new System.Drawing.Size(219, 25);
-            this.NASUserBox.TabIndex = 10;
+            this.NASUserBox.TabIndex = 5;
             // 
             // restoreBtn
             // 
-            this.restoreBtn.Location = new System.Drawing.Point(551, 120);
+            this.restoreBtn.Location = new System.Drawing.Point(551, 172);
             this.restoreBtn.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.restoreBtn.Name = "restoreBtn";
             this.restoreBtn.Size = new System.Drawing.Size(100, 28);
-            this.restoreBtn.TabIndex = 11;
+            this.restoreBtn.TabIndex = 13;
             this.restoreBtn.Text = "还原";
             this.restoreBtn.UseVisualStyleBackColor = true;
             this.restoreBtn.Click += new System.EventHandler(this.restoreBtn_Click);
             // 
             // backupBtn
             // 
-            this.backupBtn.Location = new System.Drawing.Point(19, 120);
+            this.backupBtn.Location = new System.Drawing.Point(13, 172);
             this.backupBtn.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.backupBtn.Name = "backupBtn";
             this.backupBtn.Size = new System.Drawing.Size(100, 28);
@@ -168,26 +175,100 @@
             this.backupBtn.UseVisualStyleBackColor = true;
             this.backupBtn.Click += new System.EventHandler(this.backupBtn_Click);
             // 
-            // lookupBtn
+            // lookupNASBtn
             // 
-            this.lookupBtn.Location = new System.Drawing.Point(237, 37);
-            this.lookupBtn.Name = "lookupBtn";
-            this.lookupBtn.Size = new System.Drawing.Size(75, 25);
-            this.lookupBtn.TabIndex = 13;
-            this.lookupBtn.Text = "浏览";
-            this.lookupBtn.UseVisualStyleBackColor = true;
-            this.lookupBtn.Click += new System.EventHandler(this.lookupBtn_Click);
+            this.lookupNASBtn.Location = new System.Drawing.Point(254, 37);
+            this.lookupNASBtn.Name = "lookupNASBtn";
+            this.lookupNASBtn.Size = new System.Drawing.Size(75, 25);
+            this.lookupNASBtn.TabIndex = 4;
+            this.lookupNASBtn.Text = "浏览";
+            this.lookupNASBtn.UseVisualStyleBackColor = true;
+            this.lookupNASBtn.Click += new System.EventHandler(this.lookupBtn_Click);
             // 
             // openFileDialog
             // 
             this.openFileDialog.FileName = "openFileDialog";
             // 
+            // fileTypeBox
+            // 
+            this.fileTypeBox.FormattingEnabled = true;
+            this.fileTypeBox.Items.AddRange(new object[] {
+            "gho",
+            "wim"});
+            this.fileTypeBox.Location = new System.Drawing.Point(111, 99);
+            this.fileTypeBox.Name = "fileTypeBox";
+            this.fileTypeBox.Size = new System.Drawing.Size(219, 23);
+            this.fileTypeBox.TabIndex = 7;
+            this.fileTypeBox.SelectionChangeCommitted += new System.EventHandler(this.fileTypeBox_SelectionChangeCommitted);
+            // 
+            // backupFileTypeLabel
+            // 
+            this.backupFileTypeLabel.AutoSize = true;
+            this.backupFileTypeLabel.Location = new System.Drawing.Point(16, 102);
+            this.backupFileTypeLabel.Name = "backupFileTypeLabel";
+            this.backupFileTypeLabel.Size = new System.Drawing.Size(82, 15);
+            this.backupFileTypeLabel.TabIndex = 15;
+            this.backupFileTypeLabel.Text = "文件类型：";
+            // 
+            // argLabel
+            // 
+            this.argLabel.AutoSize = true;
+            this.argLabel.Location = new System.Drawing.Point(338, 102);
+            this.argLabel.Name = "argLabel";
+            this.argLabel.Size = new System.Drawing.Size(82, 15);
+            this.argLabel.TabIndex = 16;
+            this.argLabel.Text = "额外参数：";
+            // 
+            // argsBox
+            // 
+            this.argsBox.Location = new System.Drawing.Point(426, 99);
+            this.argsBox.Name = "argsBox";
+            this.argsBox.Size = new System.Drawing.Size(223, 25);
+            this.argsBox.TabIndex = 8;
+            // 
+            // useLocalBox
+            // 
+            this.useLocalBox.AutoSize = true;
+            this.useLocalBox.Location = new System.Drawing.Point(12, 137);
+            this.useLocalBox.Name = "useLocalBox";
+            this.useLocalBox.Size = new System.Drawing.Size(127, 19);
+            this.useLocalBox.TabIndex = 9;
+            this.useLocalBox.Text = "本地备份/还原";
+            this.useLocalBox.UseVisualStyleBackColor = true;
+            this.useLocalBox.CheckedChanged += new System.EventHandler(this.useLocalBox_CheckedChanged);
+            // 
+            // localPathBox
+            // 
+            this.localPathBox.Enabled = false;
+            this.localPathBox.Location = new System.Drawing.Point(145, 135);
+            this.localPathBox.Name = "localPathBox";
+            this.localPathBox.Size = new System.Drawing.Size(419, 25);
+            this.localPathBox.TabIndex = 10;
+            // 
+            // lookupLocalBtn
+            // 
+            this.lookupLocalBtn.Enabled = false;
+            this.lookupLocalBtn.Location = new System.Drawing.Point(577, 137);
+            this.lookupLocalBtn.Name = "lookupLocalBtn";
+            this.lookupLocalBtn.Size = new System.Drawing.Size(75, 23);
+            this.lookupLocalBtn.TabIndex = 11;
+            this.lookupLocalBtn.Text = "浏览";
+            this.lookupLocalBtn.UseVisualStyleBackColor = true;
+            this.lookupLocalBtn.Click += new System.EventHandler(this.lookupLocalBtn_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(664, 163);
-            this.Controls.Add(this.lookupBtn);
+            this.ClientSize = new System.Drawing.Size(664, 212);
+            this.Controls.Add(this.lookupLocalBtn);
+            this.Controls.Add(this.localPathBox);
+            this.Controls.Add(this.useLocalBox);
+            this.Controls.Add(this.argsBox);
+            this.Controls.Add(this.argLabel);
+            this.Controls.Add(this.backupFileTypeLabel);
+            this.Controls.Add(this.fileTypeBox);
+            this.Controls.Add(this.lookupNASBtn);
             this.Controls.Add(this.backupBtn);
             this.Controls.Add(this.restoreBtn);
             this.Controls.Add(this.NASUserBox);
@@ -226,8 +307,15 @@
         private System.Windows.Forms.TextBox NASUserBox;
         private System.Windows.Forms.Button restoreBtn;
         private System.Windows.Forms.Button backupBtn;
-        private System.Windows.Forms.Button lookupBtn;
+        private System.Windows.Forms.Button lookupNASBtn;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
+        private System.Windows.Forms.ComboBox fileTypeBox;
+        private System.Windows.Forms.Label backupFileTypeLabel;
+        private System.Windows.Forms.Label argLabel;
+        private System.Windows.Forms.TextBox argsBox;
+        private System.Windows.Forms.CheckBox useLocalBox;
+        private System.Windows.Forms.TextBox localPathBox;
+        private System.Windows.Forms.Button lookupLocalBtn;
     }
 }
 

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -14,7 +15,12 @@ namespace BackupOSToNAS
     {
         //为了支持.NET Framework 3.0，建立的委托类型
         delegate void SimpleAction();
-        public PreparationNotice(Form fatherForm, string target, string operation, string NASName, string NASPath, string NASUser, string NASPassword)
+        public PreparationNotice(Form fatherForm, string target
+            , string operation, string NASName
+            , string NASPath, string NASUser
+            , string NASPassword, string FileType
+            , string IsLocalBackup, string ExtraGhoArgument
+            , string ExtraWimArgument, string LocalPath)
         {
             InitializeComponent();
             this.fatherForm = fatherForm;
@@ -24,12 +30,12 @@ namespace BackupOSToNAS
             this.NASPassword = NASPassword;
             this.NASUser = NASUser;
             this.target = target;
-
-            Thread taskThread = new Thread(new ParameterizedThreadStart(StartOperate))
-            {
-                IsBackground = true
-            };
-            taskThread.Start(operation);
+            this.FileType = FileType;
+            this.IsLocalBackup = IsLocalBackup;
+            this.ExtraGhoArgument = ExtraGhoArgument;
+            this.ExtraWimArgument = ExtraWimArgument;
+            this.LocalPath = LocalPath;
+            this.Operation = operation;
         }
 
         //备份和还原的操作只是config一个字段的不同
@@ -45,27 +51,43 @@ namespace BackupOSToNAS
                 return;
             }
 
-            if (!Functions.ParamIsVaild(NASName, NASPath, NASUser, NASPassword))
+            string errorStr = Functions.ParamIsVaild(NASName, NASPath,
+                NASUser, NASPassword,
+                target, LocalPath,
+                IsLocalBackup.ToLower() == BackupAndRestoreConfig.Yes, (string)operation,
+                out bool warningOverwrite);
+            if (errorStr.Length != 0)
             {
-                MessageBox.Show("NAS参数设置错误");
+                MessageBox.Show(errorStr);
                 Invoke(new SimpleAction(Close));
                 return;
             }
 
-            PartitionLocation partitionLocation = new PartitionLocation();
-            bool callCode = Functions.GetPartitionLocation(target.Replace("\\", ""), out partitionLocation);
+            if (warningOverwrite && MessageBox.Show("文件操作，继续备份会覆盖文件", "警告：", MessageBoxButtons.OKCancel) != DialogResult.OK)
+            {
+                Invoke(new SimpleAction(Close));
+                return;
+            }
 
-            if (callCode)
+            PartitionLocation partitionLocation1 = new PartitionLocation(), partitionLocation2 = new PartitionLocation();
+            bool callCode1 = Functions.GetPartitionLocation(target.Replace("\\", ""), out partitionLocation1);
+            bool callCode2;
+            if (LocalPath.Length != 0 && IsLocalBackup.ToLower() == BackupAndRestoreConfig.Yes)
+                callCode2 = Functions.GetPartitionLocation(Directory.GetDirectoryRoot(LocalPath).Replace("\\", ""), out partitionLocation2);
+            else
+                callCode2 = true;
+            if (callCode1 && callCode2)
             {
                 Guid defaultBootItemGuid = Guid.Empty;
-                callCode = Functions.ParseGuid(defaultBootItemGuidStr, out defaultBootItemGuid);
-                if (callCode)
+                callCode1 = Functions.ParseGuid(defaultBootItemGuidStr, out defaultBootItemGuid);
+                if (callCode1)
                 {
                     Guid deviceGuid = Guid.NewGuid(), OSLoaderGuid = Guid.NewGuid();
+
                     BackupAndRestoreConfig config = new BackupAndRestoreConfig
                     (
                         //硬盘号是0 base，传递给PERunner的时候改为1 base
-                        $"{partitionLocation.diskNumber}:{partitionLocation.partitionNumber}",
+                        $"{partitionLocation1.diskNumber}:{partitionLocation1.partitionNumber}",
                         NASName,
                         NASPath,
                         NASUser,
@@ -73,7 +95,13 @@ namespace BackupOSToNAS
                         (string)operation,
                         deviceGuid,
                         OSLoaderGuid,
-                        defaultBootItemGuid
+                        defaultBootItemGuid,
+                        FileType,
+                        IsLocalBackup,
+                        ExtraGhoArgument,
+                        ExtraWimArgument,
+                        Path.GetFullPath(LocalPath).Replace(Directory.GetDirectoryRoot(LocalPath), ""),
+                        $"{partitionLocation2.diskNumber}:{partitionLocation2.partitionNumber}"
                     );
                     config.Write("config.json");
 
@@ -143,5 +171,20 @@ namespace BackupOSToNAS
         string NASName;
         string NASPassword;
         string target;
+        string FileType;
+        string IsLocalBackup;
+        string ExtraGhoArgument;
+        string ExtraWimArgument;
+        string LocalPath;
+        string Operation;
+
+        private void PreparationNotice_Load(object sender, EventArgs e)
+        {
+            Thread taskThread = new Thread(new ParameterizedThreadStart(StartOperate))
+            {
+                IsBackground = true
+            };
+            taskThread.Start(Operation);
+        }
     }
 }

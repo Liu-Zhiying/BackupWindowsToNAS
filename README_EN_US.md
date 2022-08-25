@@ -2,15 +2,17 @@
 
 A application for users who want backup their Windows partition to NAS by SMB protocol  
 
-## Fix of the V2-fix
+## Update of V3
 
-* Fix a programming problem that is WinForm flushing UI with multi threads.
+* now the application added dism backup support
 
-* Fix a problem that application stacks when initailizing failed.
+* now allow user to input extra parameter to backup process
 
-* Add support for Windows Vista and 32bit Windows (See system requirement)
+* now support backup in local
 
-* Change technique, Windows 7 and Windows Vista version is built with .NET Framework 3.0 (See The technique we use now)
+* now not need to add extension to backup file (if extension not right)
+
+* now application checks file exists in restoring
 
 ## The technique we use now
 
@@ -48,13 +50,9 @@ A application for users who want backup their Windows partition to NAS by SMB pr
 
 * Can not change SMB port (a feature of Windows)
 
-* Application do not check file is exist when restoring.
-
 * if you machine which has SMB shared folder to backup, Note do not input the parameter of this machine (this problem will not solve in new version)
 
-* When browsing the folder, clear the NAS path is recommanded, or input a right path,you should still add the suffi of backup file by yourself.
-
-* This software using Ghost for backuping, please write the suffix of file to gho
+* When browsing the folder, clear the NAS path is recommanded, or input a right path
 
 ## How to compile this program
 
@@ -68,16 +66,8 @@ A application for users who want backup their Windows partition to NAS by SMB pr
 
 Welcome to post issue or commnuite with me for this project
 
-## Annountation of V3
+## Annountation of V4
 
-* Will add dism backup support
+* will modify wim files in Resources to support SMB1.0
 
-* Will allow user to input extra parameter to backup process
-
-* Will support backup in local.
-
-* Will not need to add suffix to backup file
-
-* Will check file exists in restoring
-
-* PS:the last tow changes are not added to this version is my lazy
+* will support two languages in UI (Chinese Simplified and English)

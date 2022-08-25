@@ -93,6 +93,7 @@
             this.Name = "PreparationNotice";
             this.Text = "PreparationNotice";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.PreparationNotice_FormClosed);
+            this.Load += new System.EventHandler(this.PreparationNotice_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

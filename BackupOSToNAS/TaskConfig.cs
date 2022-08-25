@@ -28,16 +28,28 @@ namespace BackupOSToNAS
         public const string LastDefaultGuidProperty = "LastDefaultGuid";
         public const string RestoreOperation = "restore";
         public const string BackupOperation = "backup";
+        public const string BackupFileTypeProperty = "BackupFileType";
+        public const string IsLocalBackupProperty = "IsLocalBackup";
+        public const string ExtraGhoArgumentProperty = "ExtraGhoArgument";
+        public const string ExtraWimArgumentProperty = "ExtraWimArgument";
+        public const string LocalPathProperty = "LocalPath";
+        public const string LocalDeviceProperty = "LocalDevice";
+        public const string Yes = "yes";
+        public const string No = "no";
         public Dictionary<string, string> KeyValues { get; private set; }
         static BackupAndRestoreConfig()
         {
             utf8Encoding = new UTF8Encoding(false);
         }
         public BackupAndRestoreConfig(
-            string target, string nasName, 
-            string nasPath, string nasUser, 
-            string nasPassword, string operation, 
-            Guid deviceGuid, Guid OSLoaderGuid, Guid LastDefaultGuid)
+            string target, string nasName,
+            string nasPath, string nasUser,
+            string nasPassword, string operation,
+            Guid deviceGuid, Guid OSLoaderGuid,
+            Guid LastDefaultGuid, string BackupFileType,
+            string IsLocalBackup, string ExtraGhoArgument,
+            string ExtraWimArgument, string LocalPath, 
+            string LocalDevice)
         {
             KeyValues = new Dictionary<string, string>
             {
@@ -49,7 +61,13 @@ namespace BackupOSToNAS
                 { OperationProperty, operation },
                 { DeviceGuidProperty, deviceGuid.ToString() },
                 { OSLoaderGuidProperty, OSLoaderGuid.ToString() },
-                { LastDefaultGuidProperty, LastDefaultGuid.ToString() }
+                { LastDefaultGuidProperty, LastDefaultGuid.ToString() },
+                { BackupFileTypeProperty, BackupFileType },
+                { IsLocalBackupProperty, IsLocalBackup },
+                { ExtraGhoArgumentProperty, ExtraGhoArgument },
+                { ExtraWimArgumentProperty, ExtraWimArgument },
+                { LocalPathProperty,LocalPath },
+                { LocalDeviceProperty,LocalDevice },
             };
         }
         public BackupAndRestoreConfig()
@@ -64,12 +82,18 @@ namespace BackupOSToNAS
                 { OperationProperty, "" },
                 { DeviceGuidProperty, "" },
                 { OSLoaderGuidProperty, "" },
-                { LastDefaultGuidProperty, "" }
+                { LastDefaultGuidProperty, "" },
+                { BackupFileTypeProperty, "" },
+                { IsLocalBackupProperty, "" },
+                { ExtraGhoArgumentProperty, "" },
+                { ExtraWimArgumentProperty, "" },
+                { LocalPathProperty,"" },
+                { LocalDeviceProperty,"" },
             };
         }
         public bool Read(string fileName)
         {
-            string configText = "";
+            string configText;
             try
             {
                 configText = File.ReadAllText(fileName);

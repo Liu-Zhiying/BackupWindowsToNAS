@@ -12,26 +12,71 @@ namespace BackupOSToNAS
     internal static class Functions
     {
         //检查NasName NasPath NasUser NasPassword
-        internal static bool ParamIsVaild(string NASName, string NASPath, string NASUser, string NASPassword)
+        internal static string ParamIsVaild(string NASName, string NASPath
+            , string NASUser, string NASPassword
+            , string target, string localPath
+            , bool useLocalPath, string Operation
+            , out bool warningIsOverwrite)
         {
-            bool result = false;
-            if (NASPath.IndexOf('\\') == -1)
+            warningIsOverwrite = false;
+            if (!useLocalPath)
+            {
+                string result;
+                if (NASPath.IndexOf('\\') == -1)
+                    return "只输入了共享文件夹，没有输入文件名";
+                string NASSharedFolderName = NASPath.Substring(0, NASPath.IndexOf('\\'));
+                string NASConnectCmd = $"/C \"net use \"\\\\{NASName}\\{NASSharedFolderName}\" {NASPassword} /user:\"{NASUser}\"\"";
+                string NASDisconnectCmd = $"/C \"net use \"\\\\{NASName}\\{NASSharedFolderName}\" /delete\"";
+                ProcessStartInfo info = new ProcessStartInfo()
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    FileName = "cmd.exe",
+                    Arguments = NASConnectCmd
+                };
+                Process process = Process.Start(info);
+                process.WaitForExit();
+                if (process.ExitCode == 0)
+                {
+                    string temp = NASPath;
+                    for (int index = temp.Length - 1; index > -1; index--)
+                    {
+                        if (temp[index] == '\\')
+                        {
+                            temp = temp.Substring(0, index);
+                            break;
+                        }
+                    }
+                    if (Directory.Exists($"\\\\{NASName}\\{temp}"))
+                    {
+                        if (!File.Exists($"\\\\{NASName}\\{NASPath}") && Operation.ToLower() == BackupAndRestoreConfig.RestoreOperation)
+                        {
+                            result = "还原操作下，文件必须存在";
+                        }
+                        else
+                        {
+                            if (File.Exists($"\\\\{NASName}\\{NASPath}") && Operation.ToLower() == BackupAndRestoreConfig.BackupOperation)
+                                warningIsOverwrite = true;
+                            result = "";
+                        }
+                    }
+                    else
+                    {
+                        result = "NAS 目录不存在";
+                    }
+                }
+                else
+                {
+                    result = "NAS用户名 NAS名称 NAS密码 NAS路径中的一个或者多个参数错误";
+                }
+                info.Arguments = NASDisconnectCmd;
+                process = Process.Start(info);
+                process.WaitForExit();
                 return result;
-            string NASSharedFolderName = NASPath.Substring(0, NASPath.IndexOf('\\'));
-            string NASConnectCmd = $"/C \"net use \"\\\\{NASName}\\{NASSharedFolderName}\" {NASPassword} /user:\"{NASUser}\"\"";
-            string NASDisconnectCmd = $"/C \"net use \"\\\\{NASName}\\{NASSharedFolderName}\" /delete\"";
-            ProcessStartInfo info = new ProcessStartInfo()
+            }
+            else
             {
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                FileName = "cmd.exe",
-                Arguments = NASConnectCmd
-            };
-            Process process = Process.Start(info);
-            process.WaitForExit();
-            if (process.ExitCode == 0)
-            {
-                string temp = NASPath;
+                string temp = localPath;
                 for (int index = temp.Length - 1; index > -1; index--)
                 {
                     if (temp[index] == '\\')
@@ -40,15 +85,16 @@ namespace BackupOSToNAS
                         break;
                     }
                 }
-                if (File.Exists($"\\\\{NASName}\\{NASPath}") || Directory.Exists($"\\\\{NASName}\\{temp}"))
-                {
-                    result = true;
-                }
+                if (!Directory.Exists(temp))
+                    return "文件夹的目录不存在";
+                if (Directory.GetDirectoryRoot(localPath) == target)
+                    return "备份文件所在分区和备份分区不能相同";
+                if (Operation.ToLower() == BackupAndRestoreConfig.RestoreOperation && !File.Exists(localPath))
+                    return "还原操作下，文件必须存在";
+                if (Operation.ToLower() == BackupAndRestoreConfig.BackupOperation && File.Exists(localPath))
+                    warningIsOverwrite = true;
+                return "";
             }
-            info.Arguments = NASDisconnectCmd;
-            process = Process.Start(info);
-            process.WaitForExit();
-            return result;
         }
         //修改Windows PE，加入PE备份程序
         internal static string ModifyWindowsPE(Action<int> callback)
@@ -317,10 +363,32 @@ namespace BackupOSToNAS
         //注意：被调用的函数非Windows API，其定义见项目PartitionLocation
         internal static bool GetPartitionLocation(string mountPointRoot, out PartitionLocation result)
         {
+            bool callCode = false;
             mountPointRoot = "\\\\.\\" + mountPointRoot;
             result = new PartitionLocation() { partitionNumber = 0, diskNumber = 0 };
-            bool callCode = Native.GetPartitionLocationW(mountPointRoot, out result.diskNumber, out result.partitionNumber);
-            result.diskNumber += 1;
+            IntPtr hDevice = Native.CreateFileW("\\\\.\\" + mountPointRoot, 0, Native.FILE_SHARE_READ | Native.FILE_SHARE_WRITE, IntPtr.Zero, Native.OPEN_EXISTING, 0, IntPtr.Zero);
+            if (hDevice != Native.INVALID_HANDLE_VALUE)
+            {
+                STORAGE_DEVICE_NUMBER temp = new STORAGE_DEVICE_NUMBER();
+                int NativeReturnSize = Marshal.SizeOf(temp);
+                IntPtr pNativeReturn = Marshal.AllocHGlobal(NativeReturnSize);
+                if (pNativeReturn != IntPtr.Zero)
+                {
+                    Marshal.StructureToPtr(temp, pNativeReturn, true);
+
+                    if (Native.DeviceIoControl(hDevice, Native.IOCTL_STORAGE_GET_DEVICE_NUMBER, IntPtr.Zero, 0, pNativeReturn, (uint)NativeReturnSize, out uint _, IntPtr.Zero))
+                    {
+                        STORAGE_DEVICE_NUMBER NativeReturn = (STORAGE_DEVICE_NUMBER)Marshal.PtrToStructure(pNativeReturn, typeof(STORAGE_DEVICE_NUMBER));
+                        result.diskNumber = NativeReturn.DeviceNumber + 1;
+                        result.partitionNumber = NativeReturn.PartitionNumber;
+                        callCode = true;
+                    }
+
+                    Marshal.DestroyStructure(pNativeReturn, typeof(STORAGE_DEVICE_NUMBER));
+                    Marshal.FreeHGlobal(pNativeReturn);
+                }
+                Native.CloseHandle(hDevice);
+            }
             return callCode;
         }
         //从字符串解析Guid，注意写这个方法是因为.NET franmework 3.5 没有 Guid.Parse()
